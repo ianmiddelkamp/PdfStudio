@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\PdfDocument;
 use App\Services\PdfService;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class PdfDocumentController extends Controller
 {
@@ -12,7 +13,9 @@ class PdfDocumentController extends Controller
     public function index()
     {
         $documents = PdfDocument::latest()->get();
-        return view('documents.index', compact('documents'));
+        return Inertia::render('Documents/Index', [
+            'documents' => $documents,
+        ]);
     }
 
     public function store(Request $request)
@@ -35,6 +38,9 @@ class PdfDocumentController extends Controller
     {
         $fields = $this->pdfService->extractFormFields($document->stored_path);
 
-        return view('documents.show', compact('document', 'fields'));
+        return Inertia::render('Documents/Show', [
+            'document' => $document,
+            'fields'   => $fields,
+        ]);
     }
 }
