@@ -1,6 +1,6 @@
 <script setup>
 import { useForm } from '@inertiajs/vue3'
-
+import AppLayout from '@/Layouts/AppLayout.vue'
 defineProps({
     documents: Array,
 })
@@ -17,8 +17,8 @@ function submit() {
 </script>
 
 <template>
-    <div>
-        <h1>PDF Studio</h1>
+   
+       <AppLayout>
 
         <form @submit.prevent="submit" enctype="multipart/form-data">
             <input
@@ -43,5 +43,5 @@ function submit() {
             </li>
         </ul>
         <p v-else>No documents yet.</p>
-    </div>
+      </AppLayout>
 </template>
