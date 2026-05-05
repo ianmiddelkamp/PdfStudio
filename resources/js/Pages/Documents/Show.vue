@@ -1,9 +1,41 @@
 <script setup>
+import { ref, onMounted, onUnmounted } from 'vue'
 import { router } from '@inertiajs/vue3'
+import PdfPageView from '../../Components/PdfPageView.vue'
 
 const props = defineProps({
     document: Object,
 })
+
+const status = ref(props.document.status)
+const errorMessage = ref(props.document.error_message ?? null)
+let pollInterval = null
+
+onMounted(() => {
+    if (status.value !== 'ready' && status.value !== 'failed') {
+        pollInterval = setInterval(async () => {
+            const res = await fetch(`/documents/${props.document.id}/status`)
+            const data = await res.json()
+
+            if (data.status === 'ready') {
+                clearInterval(pollInterval)
+                router.reload()
+            } else if (data.status === 'failed') {
+                clearInterval(pollInterval)
+                status.value = 'failed'
+                errorMessage.value = data.error_message
+            }
+        }, 2000)
+    }
+})
+
+onUnmounted(() => {
+    if (pollInterval) clearInterval(pollInterval)
+})
+
+function scrollToPage(pageNumber) {
+    window.document.getElementById(`page-${pageNumber}`)?.scrollIntoView({ behavior: 'smooth' })
+}
 
 function deleteDocument() {
     router.delete(`/documents/${props.document.id}`)
@@ -12,14 +44,104 @@ function deleteDocument() {
 
 <template>
     <div>
-        <h1>{{ document.original_name }}</h1>
-        <p>Status: {{ document.status }}</p>
-
-        <div v-for="page in document.pages" :key="page.id">
-            <p>Page {{ page.page_number }}</p>
-            <img :src="`/documents/${document.id}/pages/${page.id}/image`" />
+        <div v-if="status === 'failed'" class="error-state">
+            <p>Processing failed.</p>
+            <button class="btn btn-danger" @click="deleteDocument">Delete Document</button>
         </div>
 
-        <button @click="deleteDocument">Delete Document</button>
+        <div v-else-if="status !== 'ready'" class="processing-state">
+            <p>Processing document, please wait...</p>
+        </div>
+
+        <template v-else>
+            <div class="sidebar">
+                <div
+                    v-for="page in document.pages"
+                    :key="page.id"
+                    class="sidebar-item"
+                    @click="() => scrollToPage(page.page_number)"
+                >
+                    {{ page.page_number }}
+                </div>
+            </div>
+
+            <div class="viewer-container">
+                <PdfPageView
+                    v-for="page in document.pages"
+                    :key="page.id"
+                    :page="page"
+                    :document-id="document.id"
+                />
+            </div>
+
+            <div class="button-row">
+                <button class="btn btn-primary" @click="deleteDocument">Delete Document</button>
+            </div>
+        </template>
     </div>
 </template>
+
+<style scoped>
+.viewer-container {
+    overflow-y: auto;
+    max-width: 75%;
+    margin-left: auto;
+    margin-right: auto;
+}
+.sidebar {
+    position: fixed;
+    top: 50%;
+    right: 16px;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    z-index: 10;
+}
+.sidebar-item {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border: 1px solid grey;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+.sidebar-item:hover {
+    background: #f0f0f0;
+}
+.button-row {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    background-color: white;
+    z-index: 10;
+    border-top: 1px solid grey;
+}
+.processing-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 50vh;
+    font-size: 1.2rem;
+    color: #666;
+}
+.error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 50vh;
+    gap: 12px;
+    color: #dc2626;
+}
+</style>

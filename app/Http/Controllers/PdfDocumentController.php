@@ -63,7 +63,7 @@ class PdfDocumentController extends Controller
     public function show(PdfDocument $document)
     {
         return Inertia::render('Documents/Show', [
-            'document' => $document->load('pages', 'fields'),
+            'document' => $document->load('pages.fields'),
         ]);
     }
 

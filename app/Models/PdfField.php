@@ -27,4 +27,9 @@ class PdfField extends Model
     {
         return $this->belongsTo(PdfDocument::class, 'pdf_document_id');
     }
+
+     public function page(): BelongsTo
+    {
+        return $this->belongsTo(PdfPage::class, 'pdf_page_id');
+    }
 }

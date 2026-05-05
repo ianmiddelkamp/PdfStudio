@@ -9,6 +9,7 @@ use App\Models\PdfPage;
 use App\Services\PdfService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\DB;
 
 class ProcessPdfDocument implements ShouldQueue
 {
@@ -18,34 +19,49 @@ class ProcessPdfDocument implements ShouldQueue
 
     public function handle(PdfService $pdfService): void
     {
-        $this->document->update(['status' => DocumentStatus::Processing]);
+        $this->document->status = DocumentStatus::Processing;
+        $this->document->save();
 
         try {
             [$pageCount, $images] = $pdfService->rasterizeDocument($this->document->stored_path);
 
-            foreach ($images as $pageNumber => $imagePath) {
-                PdfPage::create([
-                    'pdf_document_id' => $this->document->id,
-                    'page_number'     => $pageNumber,
-                    'image_path'      => $imagePath,
-                ]);
-            }
+            DB::transaction(function () use ($pageCount, $images, $pdfService) {
+                $pageIdLookup = [];
 
-            $fields = $pdfService->extractFields($this->document->stored_path);
+                foreach ($images as $pageNumber => $imagePath) {
+                    $page = PdfPage::create([
+                        'pdf_document_id' => $this->document->id,
+                        'page_number'     => $pageNumber,
+                        'image_path'      => $imagePath,
+                    ]);
+                    $pageIdLookup[$pageNumber] = $page->id;
+                }
 
-            foreach ($fields as $field) {
-                PdfField::create([
-                    'pdf_document_id' => $this->document->id,
-                    ...$field,
-                ]);
-            }
+                $fields = $pdfService->extractFields($this->document->stored_path);
 
-            $this->document->update([
-                'page_count' => $pageCount,
-                'status'     => DocumentStatus::Ready,
-            ]);
+                foreach ($fields as $field) {
+                    $pageId = $pageIdLookup[$field['page_number']] ?? null;
+
+                    if ($pageId === null) {
+                        continue;
+                    }
+
+                    PdfField::create([
+                        'pdf_document_id' => $this->document->id,
+                        'pdf_page_id'     => $pageId,
+                        ...$field,
+                    ]);
+                }
+
+                $this->document->page_count = $pageCount;
+                $this->document->status = DocumentStatus::Ready;
+                $this->document->save();
+            });
+
         } catch (\Throwable $e) {
-            $this->document->update(['status' => DocumentStatus::Failed]);
+            $this->document->status = DocumentStatus::Failed;
+            $this->document->error_message = $e->getMessage();
+            $this->document->save();
             throw $e;
         }
     }
