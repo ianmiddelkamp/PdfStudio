@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Jobs\ProcessPdfDocument;
 use App\Models\PdfDocument;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class PdfDocumentController extends Controller
@@ -37,6 +38,19 @@ class PdfDocumentController extends Controller
         }
 
         return redirect()->route('documents.show', $document);
+    }
+
+    public function destroy(PdfDocument $document)
+    {
+        Storage::disk('local')->delete($document->stored_path);
+
+        foreach ($document->pages as $page) {
+            @unlink($page->image_path);
+        }
+
+        $document->delete();
+
+        return redirect()->route('documents.index');
     }
 
     public function show(PdfDocument $document)

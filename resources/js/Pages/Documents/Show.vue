@@ -7,11 +7,11 @@ const props = defineProps({
     document: Object,
     fields: Array,
 })
-
+const fields =  props.fields ?? [];
 // Track positions locally — starts from parsed PDF positions
 const positions = ref(
     Object.fromEntries(
-        props.fields.map(field => [
+        fields.map(field => [
             field.FieldName,
             {
                 x: parseFloat(field.FieldRect?.split(',')[0] ?? 0),
@@ -28,6 +28,11 @@ function savePositions() {
         fields: positions.value,
     })
 }
+
+function deleteDocument(){
+    router.delete(`/documents/${props.document.id}`)
+}
+
 </script>
 
 <template>
@@ -45,5 +50,6 @@ function savePositions() {
         </div>
 
         <button @click="savePositions">Save Positions</button>
+        <button @click="deleteDocument">Delete Document</button>
     </div>
 </template>
