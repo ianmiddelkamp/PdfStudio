@@ -23,7 +23,7 @@ class PdfService
     {
         $absolutePath = $this->absolutePath($storedPath);
 
-        $process = new Process(['pdftk', $absolutePath, 'dump_data_fields']);
+        $process = new Process([config('pdf.pdftk'), $absolutePath, 'dump_data_fields'], cwd: base_path('bin'));
         $process->run();
 
         if (!$process->isSuccessful()) {
@@ -82,7 +82,7 @@ class PdfService
 
         if (!file_exists($outputFile)) {
             $process = new Process([
-                'gs',
+                config('pdf.gs'),
                 '-dNOPAUSE', '-dBATCH', '-dSAFER',
                 '-sDEVICE=jpeg',
                 "-r{$dpi}",
