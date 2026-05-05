@@ -1,5 +1,8 @@
 * text=auto eol=lf
 
+*.vue linguist-detectable=true
+*.php linguist-detectable=true
+
 *.blade.php diff=html
 *.css diff=css
 *.html diff=html
