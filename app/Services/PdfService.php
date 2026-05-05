@@ -14,18 +14,64 @@ class PdfService
         return Storage::disk('local')->path($storedPath);
     }
 
-    public function extractFormFields(string $storedPath): array
+    /**
+     * Extract form fields from a PDF using PyMuPDF.
+     * Returns an array of field data ready for PdfField::create().
+     */
+    public function extractFields(string $storedPath): array
     {
         $absolutePath = $this->absolutePath($storedPath);
 
-        $process = new Process([config('pdf.pdftk'), $absolutePath, 'dump_data_fields'], cwd: base_path('bin'));
+        $process = new Process([
+            config('pdf.python'),
+            base_path('python/extract_pdf_fields.py'),
+            $absolutePath,
+        ]);
         $process->run();
 
         if (!$process->isSuccessful()) {
             return [];
         }
 
-        return $this->parseFieldDump($process->getOutput());
+        $data = json_decode($process->getOutput(), true);
+
+        if (!$data || empty($data['fields'])) {
+            return [];
+        }
+
+        return array_map(function (array $field) use ($storedPath) {
+            $css = $field['css'];
+            return [
+                'field_name'       => $field['name'],
+                'field_type'       => $field['type'],
+                'page_number'      => $field['page'],
+                'pdf_left'         => $css['left'],
+                'pdf_top'          => $css['top'],
+                'pdf_width'        => $css['width'],
+                'pdf_height'       => $css['height'],
+                'css_left'         => $css['left'],
+                'css_top'          => $css['top'],
+                'css_width'        => $css['width'],
+                'css_height'       => $css['height'],
+                'font'             => $css['font'] ?? null,
+                'font_size'        => $css['font-size'] ?? null,
+                'text_color'       => $this->colorToCss($css['text-color'] ?? null),
+                'background_color' => $this->colorToCss($css['background-color'] ?? null),
+                'border_color'     => $this->colorToCss($css['border-color'] ?? null),
+                'border_style'     => $css['border-style'] ?? null,
+                'border_width'     => $css['border-width'] ?? null,
+            ];
+        }, $data['fields']);
+    }
+
+    private function colorToCss(mixed $color): ?string
+    {
+        if (!is_array($color) || count($color) < 3) {
+            return null;
+        }
+
+        [$r, $g, $b] = $color;
+        return sprintf('rgb(%d, %d, %d)', $r * 255, $g * 255, $b * 255);
     }
 
     /**
