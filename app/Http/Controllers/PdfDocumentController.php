@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Jobs\ProcessPdfDocument;
 use App\Models\PdfDocument;
+use App\Models\PdfPage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -53,10 +54,27 @@ class PdfDocumentController extends Controller
         return redirect()->route('documents.index');
     }
 
+    public function status(PdfDocument $document)
+    {
+        return response()->json(['status' => $document->status]);
+    }
+
+
     public function show(PdfDocument $document)
     {
         return Inertia::render('Documents/Show', [
             'document' => $document->load('pages', 'fields'),
+        ]);
+    }
+
+    public function getPageImage(PdfDocument $document, PdfPage $page)
+    {
+        if ($page->pdf_document_id !== $document->id || !file_exists($page->image_path)) {
+            abort(404);
+        }
+
+        return response()->file($page->image_path, [
+            'Content-Type' => 'image/png',
         ]);
     }
 }

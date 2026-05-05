@@ -1,0 +1,93 @@
+InfoBegin
+InfoKey: Author
+InfoValue: Monster Plowing Company
+InfoBegin
+InfoKey: GTS_PDFXVersion
+InfoValue: PDF/X-1:2001
+InfoBegin
+InfoKey: Producer
+InfoValue: SAMBox 1.1 (www.sejda.org)
+InfoBegin
+InfoKey: Creator
+InfoValue: Sejda 3.0.14 (www.sejda.org)
+InfoBegin
+InfoKey: PDFVersion
+InfoValue: 1.4
+InfoBegin
+InfoKey: ModDate
+InfoValue: D:20260427212516-04'00'
+InfoBegin
+InfoKey: GTS_PDFXConformance
+InfoValue: PDF/X-1a:2001
+InfoBegin
+InfoKey: Title
+InfoValue: Seasonal Snow &amp; Ice Maintenance Service Proposal
+InfoBegin
+InfoKey: Subject
+InfoValue: Seasonal Snow &amp; Ice Maintenance Service Proposal
+InfoBegin
+InfoKey: CreationDate
+InfoValue: D:20160508185445-04'00'
+PdfID0: fff0cd872c518889c19e67c4da44db7c
+PdfID1: 088ac7085b7a644489b05ca17f6e167f
+NumberOfPages: 12
+PageMediaBegin
+PageMediaNumber: 1
+PageMediaRotation: 0
+PageMediaRect: 0 0 612 792
+PageMediaDimensions: 612 792
+PageMediaBegin
+PageMediaNumber: 2
+PageMediaRotation: 0
+PageMediaRect: 0 0 612 792
+PageMediaDimensions: 612 792
+PageMediaBegin
+PageMediaNumber: 3
+PageMediaRotation: 0
+PageMediaRect: 0 0 612 792
+PageMediaDimensions: 612 792
+PageMediaBegin
+PageMediaNumber: 4
+PageMediaRotation: 0
+PageMediaRect: 0 0 612 792
+PageMediaDimensions: 612 792
+PageMediaBegin
+PageMediaNumber: 5
+PageMediaRotation: 0
+PageMediaRect: 0 0 612 792
+PageMediaDimensions: 612 792
+PageMediaBegin
+PageMediaNumber: 6
+PageMediaRotation: 0
+PageMediaRect: 0 0 612 792
+PageMediaDimensions: 612 792
+PageMediaBegin
+PageMediaNumber: 7
+PageMediaRotation: 0
+PageMediaRect: 0 0 612 792
+PageMediaDimensions: 612 792
+PageMediaBegin
+PageMediaNumber: 8
+PageMediaRotation: 0
+PageMediaRect: 0 0 612 792
+PageMediaDimensions: 612 792
+PageMediaBegin
+PageMediaNumber: 9
+PageMediaRotation: 0
+PageMediaRect: 0 0 612 792
+PageMediaDimensions: 612 792
+PageMediaBegin
+PageMediaNumber: 10
+PageMediaRotation: 0
+PageMediaRect: 0 0 612 792
+PageMediaDimensions: 612 792
+PageMediaBegin
+PageMediaNumber: 11
+PageMediaRotation: 0
+PageMediaRect: 0 0 612 792
+PageMediaDimensions: 612 792
+PageMediaBegin
+PageMediaNumber: 12
+PageMediaRotation: 0
+PageMediaRect: 0 0 612 792
+PageMediaDimensions: 612 792
