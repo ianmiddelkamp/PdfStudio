@@ -9,8 +9,10 @@ class EnvironmentService
     public function check(): array
     {
         return [
-            'pdftk' => $this->checkTool(config('pdf.pdftk'), ['--version']),
-            'gs'    => $this->checkTool(config('pdf.gs'), ['--version']),
+            'pdftk'  => $this->checkTool(config('pdf.pdftk'), ['--version']),
+            'gs'     => $this->checkTool(config('pdf.gs'), ['--version']),
+            'magick' => $this->checkTool(config('pdf.magick'), ['--version']),
+            'python' => $this->checkTool(config('pdf.python'), ['--version']),
         ];
     }
 
@@ -22,6 +24,16 @@ class EnvironmentService
     public function gsAvailable(): bool
     {
         return $this->checkTool(config('pdf.gs'), ['--version']);
+    }
+
+    public function magickAvailable(): bool
+    {
+        return $this->checkTool(config('pdf.magick'), ['--version']);
+    }
+
+    public function pythonAvailable(): bool
+    {
+        return $this->checkTool(config('pdf.python'), ['--version']);
     }
 
     private function checkTool(string $binary, array $args): bool
