@@ -76,7 +76,7 @@ class PdfService
 
     /**
      * Burst, flatten, and rasterize all pages of a PDF.
-     * Returns an array of absolute image paths keyed by 1-based page number.
+     * Returns an array [pageCount, array of absolute image paths keyed by 1-based page number].
      */
     public function rasterizeDocument(string $storedPath): array
     {
@@ -84,7 +84,7 @@ class PdfService
         $pageCount    = $this->getPageCount($absolutePath);
 
         if ($pageCount === 0) {
-            return [];
+            return [0, []];
         }
 
         $tempDir   = storage_path('app/temp/' . uniqid('pdf_', true));
@@ -122,7 +122,7 @@ class PdfService
         @unlink($tempDir . '/doc_data.txt');
         @rmdir($tempDir);
 
-        return $images;
+        return [$pageCount, $images];
     }
 
     private function getPageCount(string $absolutePath): int
