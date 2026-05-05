@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\PdfField;
 use App\Models\PdfPage;
-use DocumentStatus;
+use App\Enums\DocumentStatus;
 
 class PdfDocument extends Model
 {
@@ -17,7 +17,7 @@ class PdfDocument extends Model
     ];
 
     protected $casts = [
-        'status' =>DocumentStatus::class
+        'status' => DocumentStatus::class
     ];
 
     public function pages(): HasMany
