@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import interact from 'interactjs'
 
@@ -9,12 +9,12 @@ const props = defineProps({
 
 const emit = defineEmits(['moved'])
 
-const el = ref(null)
+const el = ref<HTMLDivElement | null>(null)
 let currentX = 0
 let currentY = 0
 
-onMounted(() => {
-    interact(el.value).draggable({
+onMounted(() => {  
+    interact(el.value!).draggable({
         listeners: {
             move(event) {
                 currentX += event.dx
@@ -24,9 +24,9 @@ onMounted(() => {
                     `translate(${currentX}px, ${currentY}px)`
 
                 emit('moved', {
-                    name: props.field.FieldName,
-                    x: props.position.x + currentX,
-                    y: props.position.y + currentY,
+                    name: props.field?.FieldName,
+                    x: props.position?.x + currentX,
+                    y: props.position?.y + currentY,
                 })
             }
         }
@@ -40,13 +40,13 @@ onMounted(() => {
         class="pdf-field"
         :style="{
             position: 'absolute',
-            left: position.x + 'px',
-            top: position.y + 'px',
-            width: position.w + 'px',
-            height: position.h + 'px',
+            left: props.position?.x + 'px',
+            top: props.position?.y + 'px',
+            width: props.position?.w + 'px',
+            height: props.position?.h + 'px',
         }"
     >
-        {{ field.FieldName }}
+        {{ props.field?.FieldName }}
     </div>
 </template>
 

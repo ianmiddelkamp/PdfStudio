@@ -1,9 +1,10 @@
-<script setup>
+<script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3'
 import { computed } from 'vue'
+import type { Flash } from '@/types'
 
 const page = usePage()
-const flash = computed(() => page.props.flash)
+const flash = computed(() => page.props.flash as Flash)
 </script>
 
 <template>

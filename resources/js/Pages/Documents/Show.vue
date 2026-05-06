@@ -1,15 +1,16 @@
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { router } from '@inertiajs/vue3'
 import PdfPageView from '../../Components/PdfPageView.vue'
+import type { PdfDocument } from '@/types'
 
-const props = defineProps({
-    document: Object,
-})
+const props = defineProps<{
+    document: PdfDocument
+}>()
 
 const status = ref(props.document.status)
-const errorMessage = ref(props.document.error_message ?? null)
-let pollInterval = null
+const errorMessage = ref<string | null>(null)
+let pollInterval: ReturnType<typeof setInterval> | null = null
 
 onMounted(() => {
     if (status.value !== 'ready' && status.value !== 'failed') {
@@ -18,10 +19,10 @@ onMounted(() => {
             const data = await res.json()
 
             if (data.status === 'ready') {
-                clearInterval(pollInterval)
+                clearInterval(pollInterval!)
                 router.reload()
             } else if (data.status === 'failed') {
-                clearInterval(pollInterval)
+                clearInterval(pollInterval!)
                 status.value = 'failed'
                 errorMessage.value = data.error_message
             }
@@ -33,7 +34,7 @@ onUnmounted(() => {
     if (pollInterval) clearInterval(pollInterval)
 })
 
-function scrollToPage(pageNumber) {
+function scrollToPage(pageNumber: number) {
     window.document.getElementById(`page-${pageNumber}`)?.scrollIntoView({ behavior: 'smooth' })
 }
 
@@ -59,7 +60,7 @@ function deleteDocument() {
                     v-for="page in document.pages"
                     :key="page.id"
                     class="sidebar-item"
-                    @click="() => scrollToPage(page.page_number)"
+                    @click="scrollToPage(page.page_number)"
                 >
                     {{ page.page_number }}
                 </div>
