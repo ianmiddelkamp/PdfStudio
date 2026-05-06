@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { router } from '@inertiajs/vue3'
+import { router, Link } from '@inertiajs/vue3'
 import PdfPageView from '../../Components/PdfPageView.vue'
 import type { PdfDocument } from '@/types'
 
@@ -56,28 +56,21 @@ function deleteDocument() {
 
         <template v-else>
             <div class="sidebar">
-                <div
-                    v-for="page in document.pages"
-                    :key="page.id"
-                    class="sidebar-item"
-                    @click="scrollToPage(page.page_number)"
-                >
+                <div v-for="page in document.pages" :key="page.id" class="sidebar-item"
+                    @click="scrollToPage(page.page_number)">
                     {{ page.page_number }}
                 </div>
             </div>
 
             <div class="viewer-container">
-                <PdfPageView
-                    v-for="page in document.pages"
-                    :key="page.id"
-                    :page="page"
-                    :document-id="document.id"
-                />
+                <PdfPageView v-for="page in document.pages" :key="page.id" :page="page" :document-id="document.id" />
             </div>
 
             <div class="button-row">
                 <button class="btn btn-primary" @click="deleteDocument">Delete Document</button>
+                <Link :href="`/documents/${document.id}/edit`" class="btn btn-primary">Edit Document</Link>
             </div>
+           
         </template>
     </div>
 </template>
@@ -89,6 +82,7 @@ function deleteDocument() {
     margin-left: auto;
     margin-right: auto;
 }
+
 .sidebar {
     position: fixed;
     top: 50%;
@@ -99,6 +93,7 @@ function deleteDocument() {
     gap: 4px;
     z-index: 10;
 }
+
 .sidebar-item {
     width: 32px;
     height: 32px;
@@ -111,14 +106,17 @@ function deleteDocument() {
     cursor: pointer;
     font-size: 12px;
 }
+
 .sidebar-item:hover {
     background: #f0f0f0;
 }
+
 .button-row {
     position: fixed;
     bottom: 0;
     left: 0;
     width: 100%;
+    gap:5px;
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -128,6 +126,7 @@ function deleteDocument() {
     z-index: 10;
     border-top: 1px solid grey;
 }
+
 .processing-state {
     display: flex;
     align-items: center;
@@ -136,6 +135,7 @@ function deleteDocument() {
     font-size: 1.2rem;
     color: #666;
 }
+
 .error-state {
     display: flex;
     flex-direction: column;

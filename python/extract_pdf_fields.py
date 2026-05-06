@@ -15,8 +15,6 @@ doc = fitz.open(pdf_path)
 results = []
 name_counts = defaultdict(int)
 for page_index, page in enumerate(doc):
-    page_height = page.rect.height
-
     widgets = page.widgets()
     if not widgets:
         continue
@@ -30,9 +28,8 @@ for page_index, page in enumerate(doc):
         text_color = w.text_color
         text_font = w.text_font
         text_fontsize = w.text_fontsize
-        # Convert to CSS coords (top-left origin)
         css_left = rect.x0
-        css_top = page_height - rect.y1
+        css_top = rect.y0
         css_width = rect.width
         css_height = rect.height
  # Track duplicates
