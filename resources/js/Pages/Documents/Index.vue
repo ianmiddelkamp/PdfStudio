@@ -1,12 +1,14 @@
-<script setup>
+<script setup lang="ts">
 import { useForm } from '@inertiajs/vue3'
 import AppLayout from '@/Layouts/AppLayout.vue'
-defineProps({
-    documents: Array,
-})
+import type { PdfDocument } from '@/types'
+
+defineProps<{
+    documents: PdfDocument[]
+}>()
 
 const form = useForm({
-    pdf: null,
+    pdf: null as File | null,
 })
 
 function submit() {
@@ -17,14 +19,12 @@ function submit() {
 </script>
 
 <template>
-   
-       <AppLayout>
-
+    <AppLayout>
         <form @submit.prevent="submit" enctype="multipart/form-data">
             <input
                 type="file"
                 accept="application/pdf"
-                @change="form.pdf = $event.target.files[0]"
+                @change="form.pdf = ($event.target as HTMLInputElement).files?.[0] ?? null"
             >
             <span v-if="form.errors.pdf" style="color: red">
                 {{ form.errors.pdf }}
@@ -36,12 +36,12 @@ function submit() {
 
         <h2>Documents</h2>
         <ul v-if="documents.length">
-            <li v-for="document in documents" :key="document.id">
-                <a :href="`/documents/${document.id}`">
-                    {{ document.original_name }}
+            <li v-for="doc in documents" :key="doc.id">
+                <a :href="`/documents/${doc.id}`">
+                    {{ doc.original_name }}
                 </a>
             </li>
         </ul>
         <p v-else>No documents yet.</p>
-      </AppLayout>
+    </AppLayout>
 </template>
