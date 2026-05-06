@@ -1,22 +1,61 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import type { PdfPage } from '@/types'
+import { ref, computed, watch, nextTick} from 'vue'
+import type { PdfPage, PdfField } from '@/types'
+import { useFieldInteract } from '@/composables/useFieldInteract';
+import { PTS_TO_PX } from '@/const';
 
-const PTS_TO_PX = 700 / 72
+
 
 const props = defineProps<{
     documentId: number
     page: PdfPage
-    zoom: number
+    zoom: number,
+    selectedFieldId: number | null
 }>()
 
 const emit = defineEmits<{
     (e: 'natural-width', width: number): void
+    (e: 'select-field', fieldId: number): void
+    (e: 'field-moved', field: PdfField): void
 }>()
+
+
+const zoom = computed(() => props.zoom)
 
 const imgRef = ref<HTMLImageElement | null>(null)
 const naturalWidth = ref(0)
 const naturalHeight = ref(0)
+
+const localFields = ref<PdfField[]>(props.page.fields.map(f => ({ ...f })))
+
+const fieldEls = new Map<number, HTMLElement>()
+
+const {addInteract, removeInteract} = useFieldInteract(zoom, (movedField) => emit('field-moved', movedField))
+
+function setFieldRef(el: HTMLElement | null, fieldId: number) {
+    if (el) fieldEls.set(fieldId, el)
+    else fieldEls.delete(fieldId)
+}
+
+
+
+function startInteraction(fieldId: number) {
+    const el = fieldEls.get(fieldId)
+    const field = localFields.value.find(f => f.id === fieldId)
+    if (!el || !field) return
+    addInteract(el, field)
+}
+
+watch(
+    () => props.selectedFieldId,
+    (newId) => {
+        removeInteract()
+        if (newId === null) return
+        const field = localFields.value.find(f => f.id === newId)
+        if (field) nextTick(() => startInteraction(newId))
+    }
+)
+
 
 function onImageLoad() {
     if (!imgRef.value) return
@@ -37,7 +76,7 @@ const containerStyle = computed(() => ({
     transform: `scale(${props.zoom})`,
 }))
 
-function fieldStyle(field: PdfPage['fields'][number]) {
+function fieldStyle(field: PdfField) {
     return {
         left: field.css_left * PTS_TO_PX + 'px',
         top: field.css_top * PTS_TO_PX + 'px',
@@ -61,9 +100,12 @@ function fieldStyle(field: PdfPage['fields'][number]) {
                 @load="onImageLoad"
             />
             <div
-                v-for="field in page.fields"
+                v-for="field in localFields"
                 :key="field.id"
+                :ref="(el) => setFieldRef(el as HTMLElement | null, field.id)"
                 class="field-overlay"
+                :class="{selected: field.id === selectedFieldId}"
+                @click.stop="emit('select-field', field.id)"
                 :style="fieldStyle(field)"
             >
                 {{ field.field_name }}
@@ -82,6 +124,7 @@ function fieldStyle(field: PdfPage['fields'][number]) {
 .page-container {
     position: relative;
     overflow: hidden;
+    user-select: none;
 }
 .pdf-background {
     position: absolute;
@@ -97,6 +140,11 @@ function fieldStyle(field: PdfPage['fields'][number]) {
     font-size: 11px;
     padding: 2px;
     box-sizing: border-box;
+    cursor: pointer;
+}
+.field-overlay.selected {
+    border-color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
     cursor: move;
 }
 </style>
