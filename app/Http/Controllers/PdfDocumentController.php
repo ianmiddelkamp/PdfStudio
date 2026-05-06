@@ -59,6 +59,13 @@ class PdfDocumentController extends Controller
         return response()->json(['status' => $document->status]);
     }
 
+    public function edit(PdfDocument $document)
+    {
+        return Inertia::render('Documents/Edit', [
+            'document' => $document->load('pages.fields'),
+        ]);
+    }
+
 
     public function show(PdfDocument $document)
     {
