@@ -65,7 +65,7 @@ function save() {
 <style scoped>
 .viewer-container {
     overflow-y: auto;
-    max-width: 75%;
+    width: 75%;
     margin-left: auto;
     margin-right: auto;
 }

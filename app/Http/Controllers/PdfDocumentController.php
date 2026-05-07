@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Jobs\ProcessPdfDocument;
 use App\Models\PdfDocument;
 use App\Models\PdfPage;
+use App\Models\PdfFill;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -61,8 +62,23 @@ class PdfDocumentController extends Controller
 
     public function edit(PdfDocument $document)
     {
+        $document->load('pages.fields');
+        $document->setRelation('defaultFill', $document->pdfFills()->where('name', PdfFill::DEFAULT_NAME)->with('fillValues')->first());
+        $defaultFill = $document->defaultFill;
+
+        $valueMap = $defaultFill 
+            ? $defaultFill->fillValues->keyBy('pdf_field_id')
+            : collect();
+
+        $document->unsetRelation('defaultFill');
+
+        foreach ($document->pages as $page) {
+            foreach ($page->fields as $field) {
+                $field->value = $valueMap->get($field->id)?->value ?? '';
+            }
+        }
         return Inertia::render('Documents/Edit', [
-            'document' => $document->load('pages.fields'),
+            'document' => $document
         ]);
     }
 

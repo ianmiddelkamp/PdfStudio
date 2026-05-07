@@ -5,6 +5,8 @@ namespace App\Jobs;
 use App\Enums\DocumentStatus;
 use App\Models\PdfDocument;
 use App\Models\PdfField;
+use App\Models\PdfFill;
+use App\Models\PdfFillValue;
 use App\Models\PdfPage;
 use App\Services\PdfService;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -39,6 +41,11 @@ class ProcessPdfDocument implements ShouldQueue
 
                 $fields = $pdfService->extractFields($this->document->stored_path);
 
+                $defaultFill = PdfFill::create([
+                    'name' => PdfFill::DEFAULT_NAME,
+                    'pdf_document_id' => $this->document->id
+                ]);
+                $fillValues = [];
                 foreach ($fields as $field) {
                     $pageId = $pageIdLookup[$field['page_number']] ?? null;
 
@@ -46,18 +53,31 @@ class ProcessPdfDocument implements ShouldQueue
                         continue;
                     }
 
-                    PdfField::create([
+                    $fieldValue = $field['field_value'];
+                    unset($field['field_value']);
+
+
+                    $dbField = PdfField::create([
                         'pdf_document_id' => $this->document->id,
                         'pdf_page_id'     => $pageId,
                         ...$field,
                     ]);
+
+                    $fillValues[] = [
+                        'pdf_fill_id' => $defaultFill->id,
+                        'pdf_field_id' => $dbField->id,
+                        'value' => $fieldValue,
+                        'created_at'   => now(),
+                        'updated_at'   => now()
+                    ];
                 }
+
+                PdfFillValue::insert($fillValues);
 
                 $this->document->page_count = $pageCount;
                 $this->document->status = DocumentStatus::Ready;
                 $this->document->save();
             });
-
         } catch (\Throwable $e) {
             $this->document->status = DocumentStatus::Failed;
             $this->document->error_message = $e->getMessage();

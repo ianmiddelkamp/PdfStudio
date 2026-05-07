@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, nextTick} from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import type { PdfPage, PdfField } from '@/types'
 import { useFieldInteract } from '@/composables/useFieldInteract';
 import { PTS_TO_PX } from '@/const';
@@ -30,7 +30,7 @@ const localFields = ref<PdfField[]>(props.page.fields.map(f => ({ ...f })))
 
 const fieldEls = new Map<number, HTMLElement>()
 
-const {addInteract, removeInteract} = useFieldInteract(zoom, (movedField) => emit('field-moved', movedField))
+const { addInteract, removeInteract } = useFieldInteract(zoom, (movedField) => emit('field-moved', movedField))
 
 function setFieldRef(el: HTMLElement | null, fieldId: number) {
     if (el) fieldEls.set(fieldId, el)
@@ -59,9 +59,9 @@ watch(
 
 function onImageLoad() {
     if (!imgRef.value) return
-    naturalWidth.value = imgRef.value.naturalWidth
-    naturalHeight.value = imgRef.value.naturalHeight
-    emit('natural-width', naturalWidth.value)
+    naturalWidth.value = imgRef.value.naturalWidth / PTS_TO_PX
+    naturalHeight.value = imgRef.value.naturalHeight  / PTS_TO_PX
+    emit('natural-width', naturalWidth.value )
 }
 
 const wrapperStyle = computed(() => ({
@@ -75,40 +75,37 @@ const containerStyle = computed(() => ({
     transformOrigin: 'top left',
     transform: `scale(${props.zoom})`,
 }))
-
 function fieldStyle(field: PdfField) {
     return {
-        left: field.css_left * PTS_TO_PX + 'px',
-        top: field.css_top * PTS_TO_PX + 'px',
-        width: field.css_width * PTS_TO_PX + 'px',
-        height: field.css_height * PTS_TO_PX + 'px',
+        left: field.css_left + 'px',
+        top: field.css_top + 'px',
+        width: field.css_width + 'px',
+        height: field.css_height + 'px',
+        backgroundColor: field.background_color ?? undefined,
+        borderColor: field.border_color ?? undefined,
+        borderStyle: field.border_style ?? undefined,
+        borderWidth: field.border_width ? field.border_width + 'px' : undefined,
+        fontSize: field.font_size ? field.font_size + 'px' : undefined,
+        fontFamily: field.font ?? undefined,
+        fontWeight: field.font_weight ?? undefined,
+        textAlign: field.text_align as 'left' | 'center' | 'right' | undefined,
+        color: field.text_color ?? undefined,
     }
 }
 </script>
 
 <template>
     <div class="page-wrapper" :style="wrapperStyle">
-        <div
-            :id="`page-${page.page_number}`"
-            class="page-container"
-            :style="containerStyle"
-        >
-            <img
-                ref="imgRef"
-                :src="`/documents/${documentId}/pages/${page.id}/image`"
-                class="pdf-background"
-                @load="onImageLoad"
-            />
-            <div
-                v-for="field in localFields"
-                :key="field.id"
-                :ref="(el) => setFieldRef(el as HTMLElement | null, field.id)"
-                class="field-overlay"
-                :class="{selected: field.id === selectedFieldId}"
-                @click.stop="emit('select-field', field.id)"
-                :style="fieldStyle(field)"
-            >
-                {{ field.field_name }}
+        <div :id="`page-${page.page_number}`" class="page-container" :style="containerStyle">
+            <img ref="imgRef" :src="`/documents/${documentId}/pages/${page.id}/image`" class="pdf-background"
+                @load="onImageLoad" />
+
+            <div v-for="field in localFields" :key="field.id"
+                :ref="(el) => setFieldRef(el as HTMLElement | null, field.id)" class="field-overlay"
+                :class="{ selected: field.id === selectedFieldId }" @click.stop="emit('select-field', field.id)"
+                :style="fieldStyle(field)">
+                <span class='field-name'>{{ field.field_name }}</span>
+                <span class='field-value'>{{ field.value }}</span>
             </div>
         </div>
     </div>
@@ -120,12 +117,17 @@ function fieldStyle(field: PdfField) {
     overflow: hidden;
     border: 1px solid grey;
     box-sizing: border-box;
+
 }
+
 .page-container {
     position: relative;
     overflow: hidden;
     user-select: none;
+    display: block;
+
 }
+
 .pdf-background {
     position: absolute;
     top: 0;
@@ -133,18 +135,33 @@ function fieldStyle(field: PdfField) {
     width: 100%;
     height: 100%;
 }
+
 .field-overlay {
     position: absolute;
     border: 2px solid #3b82f6;
     background: rgba(59, 130, 246, 0.1);
-    font-size: 11px;
     padding: 2px;
     box-sizing: border-box;
     cursor: pointer;
 }
+
+.field-name {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    font-size: 6px;
+    white-space: nowrap;
+    color: #3b82f6;
+    pointer-events: none;
+}
+
+
 .field-overlay.selected {
     border-color: #ef4444;
     background: rgba(239, 68, 68, 0.1);
     cursor: move;
+}
+.field-overlay.selected .field-name{
+    color: #ef4444;   
 }
 </style>

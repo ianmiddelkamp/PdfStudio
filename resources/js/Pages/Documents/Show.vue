@@ -9,7 +9,6 @@ const props = defineProps<{
 }>()
 
 const status = ref(props.document.status)
-const errorMessage = ref<string | null>(null)
 let pollInterval: ReturnType<typeof setInterval> | null = null
 
 onMounted(() => {
@@ -20,11 +19,11 @@ onMounted(() => {
 
             if (data.status === 'ready') {
                 clearInterval(pollInterval!)
+                status.value = 'ready'
                 router.reload()
             } else if (data.status === 'failed') {
                 clearInterval(pollInterval!)
                 status.value = 'failed'
-                errorMessage.value = data.error_message
             }
         }, 2000)
     }

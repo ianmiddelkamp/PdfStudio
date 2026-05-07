@@ -29,4 +29,8 @@ class PdfDocument extends Model
     {
         return $this->hasMany(PdfField::class, 'pdf_document_id');
     }
+    public function pdfFills(): HasMany
+    {
+        return $this->hasMany(PdfFill::class, 'pdf_document_id');
+    }
 }
