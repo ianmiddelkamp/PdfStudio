@@ -44,6 +44,7 @@ class PdfService
             return [
                 'field_name'       => $field['name'],
                 'field_type'       => $field['type'],
+                'field_value'      => $field['value'] ?? '',
                 'page_number'      => $field['page'],
                 'pdf_left'         => $css['left'],
                 'pdf_top'          => $css['top'],
@@ -55,6 +56,9 @@ class PdfService
                 'css_height'       => $css['height'],
                 'font'             => $css['font'] ?? null,
                 'font_size'        => $css['font-size'] ?? null,
+                'font_weight'      => $css['font-weight'] ?? 'normal',
+                'text_align'       => $css['text-align'] ?? 'left',
+                'data_type'        => $css['data-type'] ?? 'string',
                 'text_color'       => $this->colorToCss($css['text-color'] ?? null),
                 'background_color' => $this->colorToCss($css['background-color'] ?? null),
                 'border_color'     => $this->colorToCss($css['border-color'] ?? null),

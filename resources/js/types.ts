@@ -15,11 +15,15 @@ export interface PdfField {
     css_height: number
     font: string | null
     font_size: number | null
+    font_weight: string
+    text_align: string
+    data_type: string
     text_color: string | null
     background_color: string | null
     border_color: string | null
     border_style: string | null
     border_width: number | null
+    value: string | null
 }
 
 export interface PdfPage {
