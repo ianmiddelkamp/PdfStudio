@@ -1,24 +1,21 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from 'vue'
 import type { PdfPage, PdfField } from '@/types'
-import { useFieldInteract } from '@/composables/useFieldInteract';
-import { PTS_TO_PX } from '@/const';
-
-
+import { useFieldInteract } from '@/composables/useFieldInteract'
+import { useEditorStore } from '@/stores/editorStore'
+import { PTS_TO_PX } from '@/const'
 
 const props = defineProps<{
     documentId: number
     page: PdfPage
-    zoom: number,
-    selectedFieldId: number | null
+    zoom: number
 }>()
 
 const emit = defineEmits<{
     (e: 'natural-width', width: number): void
-    (e: 'select-field', fieldId: number): void
-    (e: 'field-moved', field: PdfField): void
 }>()
 
+const editorStore = useEditorStore()
 
 const zoom = computed(() => props.zoom)
 
@@ -30,14 +27,16 @@ const localFields = ref<PdfField[]>(props.page.fields.map(f => ({ ...f })))
 
 const fieldEls = new Map<number, HTMLElement>()
 
-const { addInteract, removeInteract } = useFieldInteract(zoom, (movedField) => emit('field-moved', movedField))
+const { addInteract, removeInteract } = useFieldInteract(zoom, (movedField) => {
+    editorStore.updateField(movedField)
+    const idx = localFields.value.findIndex(f => f.id === movedField.id)
+    if (idx !== -1) localFields.value[idx] = movedField
+})
 
 function setFieldRef(el: HTMLElement | null, fieldId: number) {
     if (el) fieldEls.set(fieldId, el)
     else fieldEls.delete(fieldId)
 }
-
-
 
 function startInteraction(fieldId: number) {
     const el = fieldEls.get(fieldId)
@@ -47,13 +46,23 @@ function startInteraction(fieldId: number) {
 }
 
 watch(
-    () => props.selectedFieldId,
+    () => editorStore.selectedField?.id,
     (newId) => {
         removeInteract()
-        if (newId === null) return
+        if (!newId) return
         const field = localFields.value.find(f => f.id === newId)
         if (field) nextTick(() => startInteraction(newId))
     }
+)
+
+watch(
+    () => editorStore.selectedField,
+    (updated) => {
+        if (!updated) return
+        const idx = localFields.value.findIndex(f => f.id === updated.id)
+        if (idx !== -1) localFields.value[idx] = { ...updated }
+    },
+    { deep: true }
 )
 
 
@@ -102,7 +111,7 @@ function fieldStyle(field: PdfField) {
 
             <div v-for="field in localFields" :key="field.id"
                 :ref="(el) => setFieldRef(el as HTMLElement | null, field.id)" class="field-overlay"
-                :class="{ selected: field.id === selectedFieldId }" @click.stop="emit('select-field', field.id)"
+                :class="{ selected: field.id === editorStore.selectedField?.id }" @click.stop="editorStore.select(field)"
                 :style="fieldStyle(field)">
                 <span class='field-name'>{{ field.field_name }}</span>
                 <span class='field-value'>{{ field.value }}</span>
