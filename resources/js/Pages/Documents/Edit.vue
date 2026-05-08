@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import PdfPageEditor from '../../Components/PdfPageEditor.vue'
-import type { PdfDocument, PdfField } from '@/types'
+import FieldEditor from '@/Components/FieldEditor.vue'
+import type { PdfDocument } from '@/types'
 import { useZoom } from '@/composables/useZoom'
+import { useEditorStore } from '@/stores/editorStore'
 
 const props = defineProps<{
     document: PdfDocument
@@ -10,26 +12,15 @@ const props = defineProps<{
 
 const viewerRef = ref<HTMLElement | null>(null)
 const naturalWidth = ref(0)
-const selectedFieldId = ref<number | null>(null)
-const pendingChanges = new Map<number, PdfField>()
 
 const { zoom, recalculate } = useZoom(viewerRef, naturalWidth)
+const editorStore = useEditorStore()
 
 function onNaturalWidth(width: number) {
-    //run only once. on first page which calls it.
     if (naturalWidth.value === 0) {
         naturalWidth.value = width
         recalculate()
     }
-}
-
-function onSelectField(fieldId: number) {
-    //set or unset selected field.
-    selectedFieldId.value = fieldId === selectedFieldId.value ? null : fieldId
-}
-
-function onFieldMoved(field: PdfField) {
-    pendingChanges.set(field.id, field)
 }
 
 function scrollToPage(pageNumber: number) {
@@ -50,10 +41,15 @@ function save() {
             </div>
         </div>
 
+        <div v-if="editorStore.selectedField" class="property-panel">
+
+            <div class="property-panel-title">{{ editorStore.selectedField.field_name }}</div>
+            <FieldEditor />
+        </div>
+
         <div ref="viewerRef" class="viewer-container">
             <PdfPageEditor v-for="page in document.pages" :key="page.id" :page="page" :document-id="document.id"
-                :zoom="zoom" :selected-field-id="selectedFieldId" @select-field="onSelectField"
-                @field-moved="onFieldMoved" @natural-width="onNaturalWidth" />
+                :zoom="zoom" @natural-width="onNaturalWidth" />
         </div>
 
         <div class="button-row">
@@ -68,6 +64,75 @@ function save() {
     width: 75%;
     margin-left: auto;
     margin-right: auto;
+}
+
+.property-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 200px;
+    height: calc(100% - 49px);
+    overflow-y: auto;
+    background: white;
+    border-right: 1px solid grey;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    z-index: 10;
+}
+
+.property-panel-title {
+    font-weight: bold;
+    font-size: 13px;
+    margin-bottom: 8px;
+    word-break: break-all;
+}
+
+.nudge-pad {
+    display: grid;
+    grid-template-columns: repeat(3, 28px);
+    grid-template-rows: repeat(3, 28px);
+    justify-content: center;
+    margin: 6px 0 2px;
+}
+
+.nudge-pad .nudge-btn:nth-child(1) { grid-column: 2; grid-row: 1; }
+.nudge-pad .nudge-btn:nth-child(2) { grid-column: 1; grid-row: 2; }
+.nudge-pad .nudge-btn:nth-child(3) { grid-column: 3; grid-row: 2; }
+.nudge-pad .nudge-btn:nth-child(4) { grid-column: 2; grid-row: 3; }
+
+.nudge-btn {
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 10px;
+    padding: 0;
+}
+
+.nudge-btn:hover {
+    background: #f0f0f0;
+}
+
+.property-label {
+    font-size: 11px;
+    color: #555;
+    margin-top: 6px;
+}
+
+.property-input {
+    width: 100%;
+    padding: 4px 6px;
+    font-size: 12px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    box-sizing: border-box;
 }
 
 .sidebar {
